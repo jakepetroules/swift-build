@@ -46,10 +46,6 @@ public import Foundation
 
             let metaPath = ndkPath.join("meta")
 
-            guard #available(macOS 14, *) else {
-                throw StubError.error("Unsupported macOS version")
-            }
-
             if version < Self.minimumNDKVersion {
                 throw StubError.error("Android NDK version at path '\(ndkPath.str)' is not supported (r\(Self.minimumNDKVersion.description) or later required)")
             }
