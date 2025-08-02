@@ -52,9 +52,13 @@ struct AndroidEnvironmentExtension: EnvironmentExtension {
         switch context.hostOperatingSystem {
         case .windows, .macOS, .linux:
             if let latest = try? await plugin.cachedAndroidSDKInstallations(host: context.hostOperatingSystem).first {
+                let sdkPath = latest.path.str
+                let ndkPath = latest.preferredNDK?.path.str
                 return [
-                    "ANDROID_SDK_ROOT": latest.path.str,
-                    "ANDROID_NDK_ROOT": latest.ndks.last?.path.str,
+                    "ANDROID_HOME": sdkPath,
+                    "ANDROID_SDK_ROOT": sdkPath,
+                    "ANDROID_NDK_ROOT": ndkPath,
+                    "ANDROID_NDK_HOME": ndkPath,
                 ].compactMapValues { $0 }
             }
         default:
@@ -112,7 +116,7 @@ struct AndroidSDKRegistryExtension: SDKRegistryExtension {
             return []
         }
 
-        guard let androidNdk = androidSdk.latestNDK else {
+        guard let androidNdk = androidSdk.preferredNDK else {
             return []
         }
 
@@ -187,7 +191,7 @@ struct AndroidToolchainRegistryExtension: ToolchainRegistryExtension {
     let plugin: AndroidPlugin
 
     func additionalToolchains(context: any ToolchainRegistryExtensionAdditionalToolchainsContext) async throws -> [Toolchain] {
-        guard let toolchainPath = try? await plugin.cachedAndroidSDKInstallations(host: context.hostOperatingSystem).first?.latestNDK?.toolchainPath else {
+        guard let toolchainPath = try? await plugin.cachedAndroidSDKInstallations(host: context.hostOperatingSystem).first?.preferredNDK?.toolchainPath else {
             return []
         }
 
