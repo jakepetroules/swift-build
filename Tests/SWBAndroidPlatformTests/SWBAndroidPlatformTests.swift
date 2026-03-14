@@ -297,6 +297,7 @@ fileprivate struct AndroidBuildOperationTests: CoreBasedTests {
         }
     }
 
+    // Limited to Windows for now because only the Windows toolchain installer comes with a Swift SDK for Android
     @Test(.requireSDKs(.android), .requireHostOS(.windows), .disabled("Android SDK is not installed on Windows on ARM on GitHub", {
         if getEnvironmentVariable("GITHUB_ACTIONS") != nil {
             #if os(Windows) && arch(arm64)
@@ -323,7 +324,7 @@ fileprivate struct AndroidBuildOperationTests: CoreBasedTests {
                         "CODE_SIGNING_ALLOWED": "NO",
                         "DEFINES_MODULE": "YES",
                         "PRODUCT_NAME": "$(TARGET_NAME)",
-                        "SDKROOT": "android.windows",
+                        "SDKROOT": "android",
                         "SUPPORTED_PLATFORMS": "android",
                         "SWIFT_VERSION": "6.0",
                         "ANDROID_DEPLOYMENT_TARGET": "22.0",
@@ -404,14 +405,14 @@ fileprivate struct AndroidBuildOperationTests: CoreBasedTests {
 
             let minOS = arch == "riscv64" ? "35.0" : "22.0"
 
-            let destination: RunDestinationInfo = .init(platform: "android", sdk: "android.windows", sdkVariant: "android", targetArchitecture: "undefined_arch", supportedArchitectures: ["armv7", "aarch64", "riscv64", "i686", "x86_64"], disableOnlyActiveArch: true)
+            let destination: RunDestinationInfo = .init(platform: "android", sdk: "android", sdkVariant: "android", targetArchitecture: "undefined_arch", supportedArchitectures: ["armv7", "aarch64", "riscv64", "i686", "x86_64"], disableOnlyActiveArch: true)
             try await tester.checkBuild(runDestination: destination) { results in
                 results.checkNoErrors()
                 results.checkWarnings([.contains("next compile won't be incremental")], failIfNotFound: false)
 
                 let clang = Path("bin").join(core.hostOperatingSystem.imageFormat.executableName(basename: "clang"))
 
-                let sdk = try #require(results.core.sdkRegistry.lookup("android.windows"))
+                let sdk = try #require(results.core.sdkRegistry.lookup("android"))
 
                 results.checkTask(.matchRuleType("Ld"), .matchRuleItemPattern(.suffix(Path("build/Debug-android/libdynamiclib.so").str))) { task in
                     task.checkCommandLineMatches([
