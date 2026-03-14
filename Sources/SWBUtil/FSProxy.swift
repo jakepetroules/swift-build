@@ -215,15 +215,22 @@ public protocol FSProxy: AnyObject, Sendable {
     func getFileInfo(_ path: Path) throws -> FileInfo
 
     /// Get the UNIX access permissions on a file.
+    /// - note: On Windows, only the user bits are set.
+    ///         The read bit is always set,
+    ///         the write bit reflects the DOS write bit,
+    ///         and the execute bit reflects whether the file is a directory or is considered an executable type based on its file extension (using `SaferiIsExecutableFileType`).
     func getFilePermissions(_ path: Path) throws -> Int
 
     /// Set the UNIX access permissions on a file.
+    /// - note: On Windows, only the user-write bit is considered, which controls the DOS write bit.
     func setFilePermissions(_ path: Path, permissions: Int) throws
 
     /// Get the ownership (user and group) of a file.
+    /// - note: On Windows, owner and group are always zero.
     func getFileOwnership(_ path: Path) throws -> (owner: Int, group: Int)
 
     /// Set the ownership (user and group) of a file.
+    /// - note: Does nothing on Windows.
     func setFileOwnership(_ path: Path, owner: Int, group: Int) throws
 
     /// A.k.a. lstat()
@@ -518,7 +525,7 @@ class LocalFS: FSProxy, @unchecked Sendable {
 
     func _write(_ path: Path, contents: ByteString, mode: FileDescriptor.AccessMode, options: FileDescriptor.OpenOptions) throws {
         do {
-            let fd = try FileDescriptor.open(FilePath(path.str), mode, options: options, permissions: [.ownerReadWrite, .groupRead, .otherRead])
+            let fd = try FileDescriptor.open(FilePath(path.str), mode, options: options)
             _ = try fd.closeAfter {
                 try fd.writeAll(contents)
             }
@@ -536,7 +543,7 @@ class LocalFS: FSProxy, @unchecked Sendable {
     }
 
     func write(_ path: Path, contents: (FileDescriptor) async throws -> Void) async throws {
-        let fd = try FileDescriptor.open(FilePath(path.str), .writeOnly, options: [.create, .truncate], permissions: [.ownerReadWrite, .groupRead, .otherRead])
+        let fd = try FileDescriptor.open(FilePath(path.str), .writeOnly, options: [.create, .truncate])
         return try await fd.closeAfter {
             try await contents(fd)
         }
