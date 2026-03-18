@@ -591,7 +591,7 @@ import SystemPackage
         }
     }
 
-    @Test(.skipHostOS(.windows), .skipHostOS(.freebsd, "Blocked on https://github.com/swiftlang/swift/pull/77836"))
+    @Test(.skipHostOS(.windows), .skipHostOS(.freebsd, "Blocked on https://github.com/swiftlang/swift/pull/77836"), .skipHostOS(.openbsd, "OpenBSD no longer supports extended attributes"))
     func extendedAttributesSupport() throws {
         try withTemporaryDirectory { (tmpDir: Path) in
             // Many filesystems on other platforms (e.g. various non-ext4 temporary filesystems on Linux) don't support xattrs and will return ENOTSUP.
