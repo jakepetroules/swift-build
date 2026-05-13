@@ -4123,7 +4123,7 @@
                     );
                     NO = ();
                 };
-                // Category is hidden.
+                Category = SASecurityCheckers;
             },
             // Sanitizers should not be enabled while using the static analyzer.
             {
