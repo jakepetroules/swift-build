@@ -41,7 +41,8 @@ extension Result: Serializable where Success: Serializable, Failure: Serializabl
 }
 
 extension Result {
-    public static func catching(_ body: () async throws(Failure) -> Success) async -> Result<Success, Failure> {
+    @available(*, deprecated, renamed: "init(catching:)")
+    public nonisolated(nonsending) static func catching(_ body: nonisolated(nonsending) () async throws(Failure) -> Success) async -> Result<Success, Failure> {
         do {
             let result = try await body()
             return .success(result)
